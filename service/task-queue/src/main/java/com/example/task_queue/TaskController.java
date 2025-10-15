@@ -1,5 +1,6 @@
 package com.example.task_queue;
 
+import com.example.shared.Task;
 import com.example.task_queue.QueueService.QueueService;
 import com.example.task_queue.S3Service.S3Service;
 import org.springframework.web.bind.annotation.*;
