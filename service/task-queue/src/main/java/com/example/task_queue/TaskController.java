@@ -1,8 +1,9 @@
 package com.example.task_queue;
 
 import com.example.shared.Task;
-import com.example.task_queue.QueueService.QueueService;
+import com.example.task_queue.Clients.QueueServiceClient;
 import com.example.task_queue.S3Service.S3Service;
+import feign.FeignException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -13,16 +14,14 @@ import java.util.Map;
 @RestController
 @RequestMapping("/tasks")
 public class TaskController {
-    private final QueueService queueService;
     private final S3Service s3Service;
+    private final QueueServiceClient queueServiceClient;
 
 
-    public TaskController(  final QueueService queueService,
-                            final S3Service s3Service
-    ){
-        this.queueService = queueService;
+    public TaskController(final S3Service s3Service, QueueServiceClient queueServiceClient){
         this.s3Service = s3Service;
         System.out.println("Controller has been created");
+        this.queueServiceClient = queueServiceClient;
     }
     @GetMapping("/")
     public String index(){
@@ -72,9 +71,9 @@ public class TaskController {
         task = new Task(type, payload);
 
         try{
-            queueService.enqueueTask(task);
-        }catch (Exception e){
-            System.err.println(e.getMessage());
+            queueServiceClient.enqueueTask(task);
+        }catch (FeignException e){
+            System.err.println(e.contentUTF8());
             throw new Exception("Error occurred while enqueueing the task.");
         }
         return task;
