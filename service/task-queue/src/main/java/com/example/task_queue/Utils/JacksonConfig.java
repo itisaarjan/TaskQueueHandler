@@ -1,4 +1,4 @@
-package com.example.task_queue.Config;
+package com.example.task_queue.Utils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;

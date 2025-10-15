@@ -3,6 +3,7 @@ package com.example.task_queue;
 import com.example.shared.Task;
 import com.example.task_queue.Clients.QueueServiceClient;
 import com.example.task_queue.S3Service.S3Service;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import feign.FeignException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,12 +17,14 @@ import java.util.Map;
 public class TaskController {
     private final S3Service s3Service;
     private final QueueServiceClient queueServiceClient;
+    private final DiscoveryClient discoveryClient;
 
 
-    public TaskController(final S3Service s3Service, QueueServiceClient queueServiceClient){
+    public TaskController(final S3Service s3Service, QueueServiceClient queueServiceClient, final DiscoveryClient discoveryClient) {
         this.s3Service = s3Service;
         System.out.println("Controller has been created");
         this.queueServiceClient = queueServiceClient;
+        this.discoveryClient=discoveryClient;
     }
     @GetMapping("/")
     public String index(){
