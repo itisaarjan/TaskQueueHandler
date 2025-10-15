@@ -8,6 +8,8 @@ public class Task {
     private String type;
     private Instant createdAt;
     private Map<String, Object> payload;
+    private int attempts;
+    private Instant startedAt;
 
     public Task() {}
 
@@ -15,17 +17,25 @@ public class Task {
         this.type = type;
         this.payload = payload;
         this.createdAt = Instant.now();
+        this.attempts = 0;
+        this.startedAt = null;
     }
 
     public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+    public void setId(final String id) { this.id = id; }
 
     public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
+    public void setType(final String type) { this.type = type; }
 
     public Instant getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+    public void setCreatedAt(final Instant createdAt) { this.createdAt = createdAt; }
 
     public Map<String, Object> getPayload() { return payload; }
-    public void setPayload(Map<String, Object> payload) { this.payload = payload; }
+    public void setPayload(final Map<String, Object> payload) { this.payload = payload; }
+
+    public int getAttempts() { return attempts; }
+    public void setAttempts(final int attempts) { this.attempts = attempts; }
+
+    public Instant getStartedAt() { return startedAt; }
+    public void setStartedAt(final Instant startedAt) { this.startedAt = startedAt; }
 }
