@@ -41,6 +41,12 @@ public class QueueService {
         System.out.println("Enqueued task -> " + json);
     }
 
+    public Task viewTopItem() throws Exception{
+        final String json = redisTemplate.opsForList().index(queueName, -1);
+        final Task task = mapper.readValue(json, Task.class);
+        return task;
+    }
+
     public Task dequeueTask(String taskId) throws Exception {
         final String json = redisTemplate.opsForList().rightPopAndLeftPush(queueName,processingQueueName);
         if(json == null){
@@ -57,6 +63,7 @@ public class QueueService {
 
     @Scheduled(fixedDelay = 60000)
     public void recoverStuckTasks() throws Exception {
+        System.out.println("Recovering stuck tasks");
         final long VISIBILITY_MS = 5 * 60_000;
         final List<String> items = redisTemplate.opsForList().range(processingQueueName, 0, -1);
 
