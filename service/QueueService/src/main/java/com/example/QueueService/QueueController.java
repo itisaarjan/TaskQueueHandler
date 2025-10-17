@@ -55,4 +55,18 @@ public class QueueController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
         }
     }
+
+    @PostMapping("/markTaskAsCompleted")
+    public ResponseEntity<?> markTaskAsCompleted(@RequestBody final Task task){
+        try{
+            if(task == null){
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
+            }
+            queueService.markTaskAsCompleted(task);
+            return ResponseEntity.status(HttpStatus.OK).body(task.toString());
+        } catch (Exception e) {
+            System.err.println("Error while marking task as completed: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+        }
+    }
 }
