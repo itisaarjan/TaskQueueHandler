@@ -5,11 +5,14 @@ import com.example.task_queue.Clients.QueueServiceClient;
 import com.example.task_queue.S3Service.S3Service;
 import org.springframework.cloud.client.discovery.DiscoveryClient;
 import feign.FeignException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -31,13 +34,18 @@ public class TaskController {
         return "index";
     }
     @PostMapping("/upload")
-    public Task upload(@RequestParam("type") String type,
-                       @RequestParam("content") MultipartFile file
+    public ResponseEntity<?> upload(@RequestParam("type") String type,
+                                         @RequestParam("content") MultipartFile file,
+                                         @RequestParam(value = "grayscale", required = false) final Boolean grayscale,
+                                         @RequestParam(value = "invert", required = false) final Boolean invert,
+                                         @RequestParam(value = "blur", required = false) final Boolean blur,
+                                         @RequestParam(value = "resize", required = false) final Boolean resize,
+                                         @RequestParam(value = "watermark", required = false) final Boolean watermark
     ) throws Exception{
-        Path tempFile;
-        Map<String, Object> payload;
-        Task task;
-        String s3Url;
+        final Path tempFile;
+        final Map<String, Object> payload;
+        final Task task;
+        final String s3Url;
         try {
             tempFile = Files.createTempFile("upload-", "-" + file.getOriginalFilename());
         }catch (Exception e){
@@ -59,6 +67,13 @@ public class TaskController {
             throw new Exception("Error occured while uploading the file to s3.");
         }
 
+        final Map<String, Object> options = new HashMap<>();
+        if(grayscale!=null) options.put("grayscale", grayscale);
+        if(invert!=null) options.put("invert", invert);
+        if(blur!=null) options.put("blur", blur);
+        if(resize!=null) options.put("resize", resize);
+        if(watermark!=null) options.put("watermark", watermark);
+
         try{
             Files.deleteIfExists(tempFile);
         }catch (Exception e){
@@ -68,7 +83,8 @@ public class TaskController {
 
         payload = Map.of(
                 "s3Url", s3Url,
-                "fileName", file.getOriginalFilename()
+                "fileName", file.getOriginalFilename(),
+                "options", options
         );
 
         task = new Task(type, payload);
@@ -79,8 +95,9 @@ public class TaskController {
             System.err.println(e.contentUTF8());
             throw new Exception("Error occurred while enqueueing the task.");
         }
-        return task;
+        final SubmitResponse body = new SubmitResponse(task.getId(), task.getStatus());
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(body);
     }
 
-
+    public record SubmitResponse(String id, String status) {}
 }

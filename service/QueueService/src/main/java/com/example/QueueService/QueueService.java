@@ -47,7 +47,7 @@ public class QueueService {
         return task;
     }
 
-    public Task dequeueTask(String taskId) throws Exception {
+    public Task dequeueTask(final String taskId) throws Exception {
         final String json = redisTemplate.opsForList().rightPopAndLeftPush(queueName,processingQueueName);
         if(json == null){
             return null;
