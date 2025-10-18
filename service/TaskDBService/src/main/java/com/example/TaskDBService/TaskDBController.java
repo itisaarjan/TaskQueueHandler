@@ -1,5 +1,6 @@
 package com.example.TaskDBService;
 
+import com.example.shared.Task;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,15 +18,15 @@ public class TaskDBController {
     }
 
     @PostMapping
-    public ResponseEntity<TaskDB> createTask(@RequestBody final TaskDB taskDB) {
-        TaskDB savedTask = taskDBService.saveTask(taskDB);
-        return ResponseEntity.ok(savedTask);
+    public ResponseEntity<Task> createTask(@RequestBody final Task task) {
+        TaskDB saved = taskDBService.saveTask(new TaskDB(task));
+        return ResponseEntity.ok(saved);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<TaskDB> getTaskById(@PathVariable final String id) {
+    public ResponseEntity<Task> getTaskById(@PathVariable final String id) {
         Optional<TaskDB> task = taskDBService.findById(id);
-        return task.map(ResponseEntity::ok)
+        return task.<ResponseEntity<Task>>map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
