@@ -14,7 +14,7 @@ public class JsonMapConverter implements AttributeConverter<Map<String, Object>,
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Override
-    public String convertToDatabaseColumn(Map<String, Object> attribute) {
+    public String convertToDatabaseColumn(final Map<String, Object> attribute) {
         if (attribute == null) return null;
         try {
             return mapper.writeValueAsString(attribute);
@@ -25,7 +25,7 @@ public class JsonMapConverter implements AttributeConverter<Map<String, Object>,
 
     @Override
     @SuppressWarnings("unchecked")
-    public Map<String, Object> convertToEntityAttribute(String dbData) {
+    public Map<String, Object> convertToEntityAttribute(final String dbData) {
         if (dbData == null) return null;
         try {
             return mapper.readValue(dbData, Map.class);

@@ -55,7 +55,7 @@ public class TaskDB extends Task {
     }
 
     @Override
-    public void setId(String id) {
+    public void setId(final String id) {
         this.id = id;
     }
 
@@ -65,7 +65,7 @@ public class TaskDB extends Task {
     }
 
     @Override
-    public void setType(String type) {
+    public void setType(final String type) {
         this.type = type;
     }
 
@@ -75,7 +75,7 @@ public class TaskDB extends Task {
     }
 
     @Override
-    public void setCreatedAt(Instant createdAt) {
+    public void setCreatedAt(final Instant createdAt) {
         this.createdAt = createdAt;
     }
 
@@ -85,7 +85,7 @@ public class TaskDB extends Task {
     }
 
     @Override
-    public void setStartedAt(Instant startedAt) {
+    public void setStartedAt(final Instant startedAt) {
         this.startedAt = startedAt;
     }
 
@@ -95,7 +95,7 @@ public class TaskDB extends Task {
     }
 
     @Override
-    public void setCompletedAt(Instant completedAt) {
+    public void setCompletedAt(final Instant completedAt) {
         this.completedAt = completedAt;
     }
 
@@ -105,7 +105,7 @@ public class TaskDB extends Task {
     }
 
     @Override
-    public void setAttempts(int attempts) {
+    public void setAttempts(final int attempts) {
         this.attempts = attempts;
     }
 
@@ -115,7 +115,7 @@ public class TaskDB extends Task {
     }
 
     @Override
-    public void setStatus(String status) {
+    public void setStatus(final String status) {
         this.status = status;
     }
 
@@ -125,7 +125,7 @@ public class TaskDB extends Task {
     }
 
     @Override
-    public void setResultUrl(String resultUrl) {
+    public void setResultUrl(final String resultUrl) {
         this.resultUrl = resultUrl;
     }
 
@@ -135,7 +135,7 @@ public class TaskDB extends Task {
     }
 
     @Override
-    public void setPayload(Map<String, Object> payload) {
+    public void setPayload(final Map<String, Object> payload) {
         this.payload = payload;
     }
 }
