@@ -3,6 +3,8 @@ package com.example.TaskDBService;
 import com.example.TaskDBService.Utils.JsonMapConverter;
 import com.example.shared.Task;
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import java.time.Instant;
 import java.util.Map;
 
@@ -32,7 +34,8 @@ public class TaskDB extends Task {
     private String resultUrl;
 
     @Convert(converter = JsonMapConverter.class)
-    @Column(columnDefinition = "jsonb")
+    @Column(columnDefinition = "jsonb", nullable = true)
+    @JdbcTypeCode(SqlTypes.JSON)
     private Map<String, Object> payload;
 
     public TaskDB() {}
@@ -40,7 +43,7 @@ public class TaskDB extends Task {
     public TaskDB(Task task) {
         this.id = task.getId();
         this.type = task.getType();
-        this.createdAt = task.getCreatedAt();
+        this.createdAt = task.getCreatedAt() != null ? task.getCreatedAt() : Instant.now();
         this.startedAt = task.getStartedAt();
         this.completedAt = task.getCompletedAt();
         this.attempts = task.getAttempts();

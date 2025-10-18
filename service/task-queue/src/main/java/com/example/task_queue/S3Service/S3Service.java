@@ -27,7 +27,7 @@ public class S3Service {
                 .region(Region.of(region))
                 .credentialsProvider(DefaultCredentialsProvider.create())
                 .build();
-        System.out.println("S3Service initialized for region: " + region);
+        System.out.println("S3Service initialized for region: " + region + " using AWS CLI credentials");
     }
 
     public String uploadFile(Path filePath, String originalFileName) throws Exception {

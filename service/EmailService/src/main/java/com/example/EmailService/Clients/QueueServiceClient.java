@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@FeignClient(name = "queue-service", url = "${QUEUE_SERVICE_URL:}")
+@FeignClient(name = "queue-service")
 public interface QueueServiceClient {
     @GetMapping("/queue/dequeue")
     Task getFrontTask();

@@ -19,21 +19,61 @@ public class TaskDBController {
 
     @PostMapping
     public ResponseEntity<Task> createTask(@RequestBody final Task task) {
-        TaskDB saved = taskDBService.saveTask(new TaskDB(task));
-        return ResponseEntity.ok(saved);
+        System.out.println("=== TASK DB CONTROLLER: Create task ===");
+        System.out.println("TaskDBController: Creating task with ID: " + task.getId());
+        System.out.println("TaskDBController: Task type: " + task.getType());
+        System.out.println("TaskDBController: Task status: " + task.getStatus());
+        
+        try {
+            System.out.println("TaskDBController: Converting Task to TaskDB...");
+            TaskDB taskDB = new TaskDB(task);
+            System.out.println("TaskDBController: Calling taskDBService.saveTask()...");
+            TaskDB saved = taskDBService.saveTask(taskDB);
+            System.out.println("TaskDBController: Task saved successfully with ID: " + saved.getId());
+            return ResponseEntity.ok(saved);
+        } catch (Exception e) {
+            System.err.println("TaskDBController ERROR: Failed to create task: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Task> getTaskById(@PathVariable final String id) {
-        Optional<TaskDB> task = taskDBService.findById(id);
-        return task.<ResponseEntity<Task>>map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        System.out.println("=== TASK DB CONTROLLER: Get task by ID ===");
+        System.out.println("TaskDBController: Getting task with ID: " + id);
+        
+        try {
+            System.out.println("TaskDBController: Calling taskDBService.findById()...");
+            Optional<TaskDB> task = taskDBService.findById(id);
+            if (task.isPresent()) {
+                System.out.println("TaskDBController: Task found: " + task.get().getId());
+                return ResponseEntity.ok(task.get());
+            } else {
+                System.out.println("TaskDBController: Task not found");
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            System.err.println("TaskDBController ERROR: Failed to get task: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     @GetMapping
     public ResponseEntity<List<TaskDB>> getAllTasks() {
-        List<TaskDB> tasks = taskDBService.findAll();
-        return ResponseEntity.ok(tasks);
+        System.out.println("=== TASK DB CONTROLLER: Get all tasks ===");
+        
+        try {
+            System.out.println("TaskDBController: Calling taskDBService.findAll()...");
+            List<TaskDB> tasks = taskDBService.findAll();
+            System.out.println("TaskDBController: Found " + tasks.size() + " tasks");
+            return ResponseEntity.ok(tasks);
+        } catch (Exception e) {
+            System.err.println("TaskDBController ERROR: Failed to get all tasks: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     @PutMapping("/{id}/status")
@@ -42,14 +82,37 @@ public class TaskDBController {
             @RequestParam final String status,
             @RequestParam(required = false) final String resultUrl
     ) {
-        taskDBService.updateStatus(id, status, resultUrl);
-        return ResponseEntity.ok().build();
+        System.out.println("=== TASK DB CONTROLLER: Update task status ===");
+        System.out.println("TaskDBController: Updating task ID: " + id + " to status: " + status);
+        System.out.println("TaskDBController: Result URL: " + resultUrl);
+        
+        try {
+            System.out.println("TaskDBController: Calling taskDBService.updateStatus()...");
+            taskDBService.updateStatus(id, status, resultUrl);
+            System.out.println("TaskDBController: Task status updated successfully");
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            System.err.println("TaskDBController ERROR: Failed to update task status: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     @PutMapping("/{id}/processing")
     public ResponseEntity<Void> markTaskProcessing(@PathVariable final String id) {
-        taskDBService.updateStatus(id, "processing", null);
-        return ResponseEntity.ok().build();
+        System.out.println("=== TASK DB CONTROLLER: Mark task as processing ===");
+        System.out.println("TaskDBController: Marking task ID: " + id + " as processing");
+        
+        try {
+            System.out.println("TaskDBController: Calling taskDBService.updateStatus()...");
+            taskDBService.updateStatus(id, "processing", null);
+            System.out.println("TaskDBController: Task marked as processing successfully");
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            System.err.println("TaskDBController ERROR: Failed to mark task as processing: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     @PutMapping("/{id}/complete")
@@ -57,8 +120,20 @@ public class TaskDBController {
             @PathVariable final String id,
             @RequestParam(required = false) final String resultUrl
     ) {
-        taskDBService.markTaskCompleted(id, resultUrl);
-        return ResponseEntity.ok().build();
+        System.out.println("=== TASK DB CONTROLLER: Mark task as completed ===");
+        System.out.println("TaskDBController: Marking task ID: " + id + " as completed");
+        System.out.println("TaskDBController: Result URL: " + resultUrl);
+        
+        try {
+            System.out.println("TaskDBController: Calling taskDBService.markTaskCompleted()...");
+            taskDBService.markTaskCompleted(id, resultUrl);
+            System.out.println("TaskDBController: Task marked as completed successfully");
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            System.err.println("TaskDBController ERROR: Failed to mark task as completed: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     @PutMapping("/{id}/failed")
@@ -66,9 +141,21 @@ public class TaskDBController {
             @PathVariable final String id,
             @RequestParam(required = false) final String reason
     ) {
-        String message = (reason != null) ? "failed: " + reason : "failed";
-        taskDBService.updateStatus(id, message, null);
-        return ResponseEntity.ok().build();
+        System.out.println("=== TASK DB CONTROLLER: Mark task as failed ===");
+        System.out.println("TaskDBController: Marking task ID: " + id + " as failed");
+        System.out.println("TaskDBController: Reason: " + reason);
+        
+        try {
+            String message = (reason != null) ? "failed: " + reason : "failed";
+            System.out.println("TaskDBController: Calling taskDBService.updateStatus()...");
+            taskDBService.updateStatus(id, message, null);
+            System.out.println("TaskDBController: Task marked as failed successfully");
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            System.err.println("TaskDBController ERROR: Failed to mark task as failed: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     @DeleteMapping("/{id}")

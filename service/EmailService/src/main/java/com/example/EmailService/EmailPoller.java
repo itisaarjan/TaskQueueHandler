@@ -3,8 +3,8 @@ package com.example.EmailService;
 import com.example.EmailService.Clients.QueueServiceClient;
 import com.example.shared.EmailRequest;
 import com.example.shared.Task;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.scheduling.annotation.Scheduled;
 
 @Component
 public class EmailPoller {

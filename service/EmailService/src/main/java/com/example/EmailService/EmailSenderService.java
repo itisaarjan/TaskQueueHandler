@@ -19,12 +19,14 @@ public class EmailSenderService {
         if (request.isHtml()) {
             final MimeMessage mimeMessage = mailSender.createMimeMessage();
             final MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            helper.setFrom("noreply@taskqueue.com");
             helper.setTo(request.getTo());
             helper.setSubject(request.getSubject());
             helper.setText(request.getBody(), true);
             mailSender.send(mimeMessage);
         } else {
             final SimpleMailMessage message = new SimpleMailMessage();
+            message.setFrom("noreply@taskqueue.com");
             message.setTo(request.getTo());
             message.setSubject(request.getSubject());
             message.setText(request.getBody());

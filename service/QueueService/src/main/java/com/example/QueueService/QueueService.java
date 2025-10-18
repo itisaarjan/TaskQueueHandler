@@ -39,31 +39,141 @@ public class QueueService {
     }
 
     public void enqueueTask(final Task task) throws Exception {
-        final String json = mapper.writeValueAsString(task);
-        final ListOperations<String, String> ops = redisTemplate.opsForList();
-        ops.leftPush(queueName, json);
-        taskDBClient.updateTaskStatus(task.getId(), "queued", null);
+        System.out.println("=== QUEUE SERVICE: Enqueue task ===");
+        System.out.println("QueueService: Enqueuing task ID: " + task.getId());
+        System.out.println("QueueService: Task type: " + task.getType());
+        System.out.println("QueueService: Queue name: " + queueName);
+        
+        try {
+            System.out.println("QueueService: Converting task to JSON...");
+            final String json = mapper.writeValueAsString(task);
+            System.out.println("QueueService: Task JSON: " + json);
+            
+            System.out.println("QueueService: Getting Redis list operations...");
+            final ListOperations<String, String> ops = redisTemplate.opsForList();
+            
+            System.out.println("QueueService: Pushing task to Redis queue...");
+            ops.leftPush(queueName, json);
+            System.out.println("QueueService: Task pushed to Redis successfully");
+            
+            System.out.println("QueueService: Updating task status in database...");
+            taskDBClient.updateTaskStatus(task.getId(), "queued", null);
+            System.out.println("QueueService: Task status updated to 'queued'");
+            
+            System.out.println("QueueService: Enqueue completed successfully");
+        } catch (Exception e) {
+            System.err.println("QueueService ERROR: Failed to enqueue task: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     public Task viewTopItem() throws Exception {
-        final String json = redisTemplate.opsForList().index(queueName, -1);
-        if (json == null) return null;
-        return mapper.readValue(json, Task.class);
+        System.out.println("=== QUEUE SERVICE: View top item ===");
+        System.out.println("QueueService: Getting top item from queue: " + queueName);
+        
+        try {
+            final String json = redisTemplate.opsForList().index(queueName, 0);
+            if (json == null) {
+                System.out.println("QueueService: Queue is empty");
+                return null;
+            }
+            System.out.println("QueueService: Found task JSON: " + json);
+            
+            final Task task = mapper.readValue(json, Task.class);
+            System.out.println("QueueService: Parsed task ID: " + task.getId());
+            return task;
+        } catch (Exception e) {
+            System.err.println("QueueService ERROR: Failed to view top item: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     public Task dequeueTask(final String taskId) throws Exception {
-        final String json = redisTemplate.opsForList().rightPopAndLeftPush(queueName, processingQueueName);
-        if (json == null) return null;
-        final Task task = mapper.readValue(json, Task.class);
-        task.setStartedAt(Instant.now());
-        taskDBClient.updateTaskStatus(task.getId(), "processing", null);
-        return task;
+        System.out.println("=== QUEUE SERVICE: Dequeue task ===");
+        System.out.println("QueueService: Dequeuing task ID: " + taskId);
+        System.out.println("QueueService: Moving from queue: " + queueName + " to processing: " + processingQueueName);
+        
+        try {
+            System.out.println("QueueService: Getting all tasks from queue to find matching task...");
+            final List<String> allTasks = redisTemplate.opsForList().range(queueName, 0, -1);
+            if (allTasks == null || allTasks.isEmpty()) {
+                System.out.println("QueueService: No tasks found in queue");
+                return null;
+            }
+            
+            System.out.println("QueueService: Found " + allTasks.size() + " tasks in queue");
+            
+            // Find the task with matching ID
+            String taskJson = null;
+            for (int i = 0; i < allTasks.size(); i++) {
+                final String json = allTasks.get(i);
+                try {
+                    final Task task = mapper.readValue(json, Task.class);
+                    if (taskId.equals(task.getId())) {
+                        taskJson = json;
+                        System.out.println("QueueService: Found matching task at index " + i);
+                        break;
+                    }
+                } catch (Exception e) {
+                    System.err.println("QueueService WARNING: Failed to parse task JSON: " + json);
+                }
+            }
+            
+            if (taskJson == null) {
+                System.out.println("QueueService: Task with ID " + taskId + " not found in queue");
+                return null;
+            }
+            
+            System.out.println("QueueService: Removing task from queue...");
+            redisTemplate.opsForList().remove(queueName, 1, taskJson);
+            
+            System.out.println("QueueService: Adding task to processing queue...");
+            redisTemplate.opsForList().leftPush(processingQueueName, taskJson);
+            
+            final Task task = mapper.readValue(taskJson, Task.class);
+            System.out.println("QueueService: Parsed task ID: " + task.getId());
+            
+            System.out.println("QueueService: Setting task start time...");
+            task.setStartedAt(Instant.now());
+            
+            System.out.println("QueueService: Updating task status to 'processing'...");
+            taskDBClient.updateTaskStatus(task.getId(), "processing", null);
+            System.out.println("QueueService: Task status updated to 'processing'");
+            
+            System.out.println("QueueService: Dequeue completed successfully");
+            return task;
+        } catch (Exception e) {
+            System.err.println("QueueService ERROR: Failed to dequeue task: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     public void markTaskAsCompleted(final Task task) throws Exception {
-        final String json = mapper.writeValueAsString(task);
-        redisTemplate.opsForList().remove(processingQueueName, 1, json);
-        taskDBClient.markTaskCompleted(task.getId(), task.getResultUrl());
+        System.out.println("=== QUEUE SERVICE: Mark task as completed ===");
+        System.out.println("QueueService: Marking task as completed ID: " + task.getId());
+        System.out.println("QueueService: Result URL: " + task.getResultUrl());
+        
+        try {
+            System.out.println("QueueService: Converting task to JSON...");
+            final String json = mapper.writeValueAsString(task);
+            
+            System.out.println("QueueService: Removing task from processing queue...");
+            redisTemplate.opsForList().remove(processingQueueName, 1, json);
+            System.out.println("QueueService: Task removed from processing queue");
+            
+            System.out.println("QueueService: Marking task as completed in database...");
+            taskDBClient.markTaskCompleted(task.getId(), task.getResultUrl());
+            System.out.println("QueueService: Task marked as completed in database");
+            
+            System.out.println("QueueService: Mark completed successfully");
+        } catch (Exception e) {
+            System.err.println("QueueService ERROR: Failed to mark task as completed: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
     }
 
     @Scheduled(fixedDelay = 60000)

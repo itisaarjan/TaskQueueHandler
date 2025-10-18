@@ -29,6 +29,7 @@ public class ImageWorkerService {
 
     private final S3Client s3Client;
     private final String bucketName;
+    private final String region;
     private static final int MAX_WIDTH = 1024;
     private static final int MAX_HEIGHT = 1024;
 
@@ -37,6 +38,7 @@ public class ImageWorkerService {
             @Value("${aws.region:us-east-1}") final String region
     ) {
         this.bucketName = bucketName;
+        this.region = region;
         this.s3Client = S3Client.builder()
                 .region(Region.of(region))
                 .credentialsProvider(DefaultCredentialsProvider.create())
@@ -44,41 +46,84 @@ public class ImageWorkerService {
     }
 
     public void process(final Task task) throws Exception {
+        System.out.println("=== IMAGE WORKER SERVICE: Starting image processing ===");
+        System.out.println("ImageWorkerService: Processing task ID: " + task.getId());
+        
         long start = System.currentTimeMillis();
 
+        System.out.println("ImageWorkerService: Extracting task payload...");
         final String s3Url = (String) task.getPayload().get("s3Url");
         final String fileName = (String) task.getPayload().get("fileName");
+        @SuppressWarnings("unchecked")
         final Map<String, Object> options = (Map<String, Object>) task.getPayload().get("options");
+        
+        System.out.println("ImageWorkerService: S3 URL: " + s3Url);
+        System.out.println("ImageWorkerService: File name: " + fileName);
+        System.out.println("ImageWorkerService: Processing options: " + options);
 
-        System.out.println("Starting image task: " + fileName + " with options " + options);
-
+        System.out.println("ImageWorkerService: Creating temporary files...");
         final Path input = Files.createTempFile("input-", "-" + fileName);
         final Path output = Files.createTempFile("processed-", "-" + fileName.replaceAll("\\..+$", ".jpg"));
+        System.out.println("ImageWorkerService: Input file: " + input.toString());
+        System.out.println("ImageWorkerService: Output file: " + output.toString());
 
+        System.out.println("ImageWorkerService: Downloading image from S3...");
         downloadFromS3(s3Url, input);
+        System.out.println("ImageWorkerService: Image downloaded successfully");
 
+        System.out.println("ImageWorkerService: Reading image file...");
         BufferedImage img = ImageIO.read(input.toFile());
-        if (img == null) throw new IOException("Invalid image format for: " + fileName);
+        if (img == null) {
+            System.err.println("ImageWorkerService ERROR: Invalid image format for: " + fileName);
+            throw new IOException("Invalid image format for: " + fileName);
+        }
+        System.out.println("ImageWorkerService: Image loaded successfully - " + img.getWidth() + "x" + img.getHeight());
 
-        if (getBoolean(options, "resize")) img = resizeIfNeeded(img);
-        if (getBoolean(options, "grayscale")) img = convertToGrayscale(img);
-        if (getBoolean(options, "invert")) img = invertColors(img);
-        if (getBoolean(options, "blur")) img = blurImage(img);
-        if (options.get("watermark") != null)
+        System.out.println("ImageWorkerService: Applying image processing options...");
+        if (getBoolean(options, "resize")) {
+            System.out.println("ImageWorkerService: Applying resize...");
+            img = resizeIfNeeded(img);
+        }
+        if (getBoolean(options, "grayscale")) {
+            System.out.println("ImageWorkerService: Converting to grayscale...");
+            img = convertToGrayscale(img);
+        }
+        if (getBoolean(options, "invert")) {
+            System.out.println("ImageWorkerService: Inverting colors...");
+            img = invertColors(img);
+        }
+        if (getBoolean(options, "blur")) {
+            System.out.println("ImageWorkerService: Applying blur...");
+            img = blurImage(img);
+        }
+        if (options.get("watermark") != null) {
+            System.out.println("ImageWorkerService: Adding watermark...");
             img = addWatermark(img, options.get("watermark").toString());
+        }
 
+        System.out.println("ImageWorkerService: Compressing to JPEG...");
         compressToJPEG(img, output, 0.85f);
+        System.out.println("ImageWorkerService: JPEG compression completed");
 
         final String key = String.format("processed/%s/%d-%s",
                 task.getId(), Instant.now().getEpochSecond(), fileName.replaceAll("\\..+$", ".jpg"));
+        System.out.println("ImageWorkerService: Generated S3 key: " + key);
 
+        System.out.println("ImageWorkerService: Uploading processed image to S3...");
         uploadToS3(output, key);
-        task.setResultUrl("https://" + bucketName + ".s3.amazonaws.com/" + key);
+        System.out.println("ImageWorkerService: Upload to S3 completed");
+        
+        task.setResultUrl("https://" + bucketName + ".s3." + region + ".amazonaws.com/" + key);
+        System.out.println("ImageWorkerService: Set result URL: " + task.getResultUrl());
+        
+        System.out.println("ImageWorkerService: Cleaning up temporary files...");
         Files.deleteIfExists(input);
         Files.deleteIfExists(output);
+        System.out.println("ImageWorkerService: Cleanup completed");
 
         final double time = (System.currentTimeMillis() - start) / 1000.0;
-        System.out.printf("Completed image task in %.2fs → uploaded to %s%n", time, key);
+        System.out.println("ImageWorkerService: Image processing completed successfully in " + time + "s");
+        System.out.println("ImageWorkerService: Final result URL: " + task.getResultUrl());
     }
 
     private BufferedImage resizeIfNeeded(BufferedImage img) {
