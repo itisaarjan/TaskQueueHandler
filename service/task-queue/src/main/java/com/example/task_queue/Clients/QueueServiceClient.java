@@ -7,6 +7,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 @FeignClient(name = "queue-service")
 public interface QueueServiceClient {
-    @PostMapping("/enqueue")
+    @PostMapping("/queue/enqueue")
     void enqueueTask(@RequestBody Task task);
 }

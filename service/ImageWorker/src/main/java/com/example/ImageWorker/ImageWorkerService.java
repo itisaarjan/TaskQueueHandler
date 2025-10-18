@@ -73,7 +73,7 @@ public class ImageWorkerService {
                 task.getId(), Instant.now().getEpochSecond(), fileName.replaceAll("\\..+$", ".jpg"));
 
         uploadToS3(output, key);
-
+        task.setResultUrl("https://" + bucketName + ".s3.amazonaws.com/" + key);
         Files.deleteIfExists(input);
         Files.deleteIfExists(output);
 

@@ -15,22 +15,25 @@ import java.util.UUID;
 public class S3Service {
     private final S3Client s3Client;
     private final String bucketName;
+    private final String region;
+
     public S3Service(
             @Value("${aws.region}") String region,
             @Value("${aws.s3.bucket}") String bucketName
-    ){
+    ) {
+        this.region = region;
+        this.bucketName = bucketName;
         this.s3Client = S3Client.builder()
                 .region(Region.of(region))
                 .credentialsProvider(DefaultCredentialsProvider.create())
                 .build();
-        this.bucketName = bucketName;
-        System.out.println("Service has been created");
+        System.out.println("S3Service initialized for region: " + region);
     }
 
     public String uploadFile(Path filePath, String originalFileName) throws Exception {
         String key = "uploads/" + UUID.randomUUID() + "/" + originalFileName;
 
-        try{
+        try {
             s3Client.putObject(
                     PutObjectRequest.builder()
                             .bucket(bucketName)
@@ -39,19 +42,18 @@ public class S3Service {
                     RequestBody.fromFile(filePath)
             );
 
-            return "https://" + bucketName + "/" + key;
-        }catch(Exception e){
+            return "https://" + bucketName + ".s3." + region + ".amazonaws.com/" + key;
+        } catch (Exception e) {
             e.printStackTrace();
-            throw new Exception("Error uploading file");
+            throw new Exception("Error uploading file: " + e.getMessage());
         }
     }
 
     public void deleteFile(String key) throws Exception {
-        try{
+        try {
             s3Client.deleteObject(b -> b.bucket(bucketName).key(key));
-        }catch (Exception e){
-            throw new Exception("Error deleting file");
+        } catch (Exception e) {
+            throw new Exception("Error deleting file: " + e.getMessage());
         }
     }
-
 }

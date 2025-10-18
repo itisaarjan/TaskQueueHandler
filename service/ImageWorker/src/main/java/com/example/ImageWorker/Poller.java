@@ -20,7 +20,7 @@ public class Poller {
     public void pollQueue(){
         try{
             final Task task = queueServiceClient.getFrontTask();
-            if(task != null){
+            if(task == null){
                 return;
             }
 
