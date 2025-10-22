@@ -1,98 +1,98 @@
 package com.example.QueueService;
 
 import com.example.shared.Task;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/queue")
 public class QueueController {
+
     private final QueueService queueService;
 
-    public QueueController(final QueueService queueService){
+    public QueueController(final QueueService queueService) {
         this.queueService = queueService;
+        log.info("QueueController initialized");
     }
 
     @PostMapping("/enqueue")
-    public ResponseEntity<String> enqueue(@RequestBody final Task task){
-        System.out.println("=== QUEUE CONTROLLER: Enqueue request ===");
-        System.out.println("QueueController: Received enqueue request for task ID: " + task.getId());
-        System.out.println("QueueController: Task type: " + task.getType());
-        System.out.println("QueueController: Task status: " + task.getStatus());
-        
-        try{
-            System.out.println("QueueController: Calling queueService.enqueueTask()...");
-            queueService.enqueueTask(task);
-            System.out.println("QueueController: Task enqueued successfully");
-        }catch (Exception e){
-            System.err.println("QueueController ERROR: Failed to enqueue task: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+    public ResponseEntity<String> enqueue(@RequestBody final Task task) {
+        if (task == null) {
+            log.warn("Received null task in enqueue request");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Task cannot be null");
         }
 
-        System.out.println("QueueController: Returning success response");
-        return ResponseEntity.status(HttpStatus.OK).body(task.toString());
+        log.info("Received enqueue request for task ID={}, type={}, status={}",
+                task.getId(), task.getType(), task.getStatus());
+
+        try {
+            queueService.enqueueTask(task);
+            log.info("Successfully enqueued task ID={}", task.getId());
+            return ResponseEntity.ok(task.toString());
+        } catch (Exception e) {
+            log.error("Failed to enqueue task ID={}: {}", task.getId(), e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to enqueue task: " + e.getMessage());
+        }
     }
 
     @GetMapping("/dequeue")
-    public ResponseEntity<?> dequeue() {
-        System.out.println("=== QUEUE CONTROLLER: View top item request ===");
+    public ResponseEntity<?> viewTopItem() {
+        log.info("Received request to view top item in queue");
         try {
-            System.out.println("QueueController: Calling queueService.viewTopItem()...");
-            Task task = queueService.viewTopItem();
+            final Task task = queueService.viewTopItem();
             if (task == null) {
-                System.out.println("QueueController: Queue is empty");
+                log.debug("Queue is empty");
                 return ResponseEntity.status(HttpStatus.NO_CONTENT)
                         .body("Queue is empty");
             }
-            System.out.println("QueueController: Found task at top: " + task.getId());
+            log.info("Top item retrieved successfully: ID={}, type={}", task.getId(), task.getType());
             return ResponseEntity.ok(task);
         } catch (Exception e) {
-            System.err.println("QueueController ERROR: Error while viewing top item: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error while viewing top item: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error: " + e.getMessage());
         }
     }
 
     @PostMapping("/dequeue")
-    public ResponseEntity<?> dequeue(@RequestParam("id") final String taskId){
-        System.out.println("=== QUEUE CONTROLLER: Dequeue request ===");
-        System.out.println("QueueController: Received dequeue request for task ID: " + taskId);
-        try{
-            System.out.println("QueueController: Calling queueService.dequeueTask()...");
+    public ResponseEntity<?> dequeue(@RequestParam("id") final String taskId) {
+        log.info("Received dequeue request for task ID={}", taskId);
+        try {
             final Task task = queueService.dequeueTask(taskId);
-            if(task == null){
-                System.out.println("QueueController: Task not found or already dequeued");
-                return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
+            if (task == null) {
+                log.warn("Task ID={} not found or already dequeued", taskId);
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Task not found");
             }
-            System.out.println("QueueController: Task dequeued successfully: " + task.getId());
+            log.info("Successfully dequeued task ID={}", task.getId());
             return ResponseEntity.ok(task);
         } catch (Exception e) {
-            System.err.println("QueueController ERROR: Error while dequeing task: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+            log.error("Error while dequeuing task ID={}: {}", taskId, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error: " + e.getMessage());
         }
     }
 
     @PostMapping("/markTaskAsCompleted")
-    public ResponseEntity<?> markTaskAsCompleted(@RequestBody final Task task){
-        System.out.println("=== QUEUE CONTROLLER: Mark task as completed request ===");
-        System.out.println("QueueController: Received mark completed request for task ID: " + (task != null ? task.getId() : "null"));
-        try{
-            if(task == null){
-                System.out.println("QueueController: Task is null, returning NO_CONTENT");
-                return ResponseEntity.status(HttpStatus.NO_CONTENT).body(null);
-            }
-            System.out.println("QueueController: Calling queueService.markTaskAsCompleted()...");
+    public ResponseEntity<?> markTaskAsCompleted(@RequestBody final Task task) {
+        if (task == null) {
+            log.warn("Received null task in markTaskAsCompleted request");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Task cannot be null");
+        }
+
+        log.info("Received mark-as-completed request for task ID={}", task.getId());
+
+        try {
             queueService.markTaskAsCompleted(task);
-            System.out.println("QueueController: Task marked as completed successfully");
-            return ResponseEntity.status(HttpStatus.OK).body(task.toString());
+            log.info("Successfully marked task ID={} as completed", task.getId());
+            return ResponseEntity.ok(task.toString());
         } catch (Exception e) {
-            System.err.println("QueueController ERROR: Error while marking task as completed: " + e.getMessage());
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
+            log.error("Error while marking task ID={} as completed: {}", task.getId(), e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error: " + e.getMessage());
         }
     }
 }

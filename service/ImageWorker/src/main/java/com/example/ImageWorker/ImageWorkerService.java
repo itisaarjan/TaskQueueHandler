@@ -1,6 +1,7 @@
 package com.example.ImageWorker;
 
 import com.example.shared.Task;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
@@ -17,128 +18,140 @@ import javax.imageio.stream.ImageOutputStream;
 import java.awt.*;
 import java.awt.image.*;
 import java.io.*;
-import java.net.URL;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Iterator;
 import java.util.Map;
 
+@Slf4j
 @Service
 public class ImageWorkerService {
 
     private final S3Client s3Client;
     private final String bucketName;
     private final String region;
+    private final String lambdaDownloadUrl;
+    private final HttpClient httpClient;
     private static final int MAX_WIDTH = 1024;
     private static final int MAX_HEIGHT = 1024;
 
     public ImageWorkerService(
             @Value("${aws.s3.bucket}") final String bucketName,
-            @Value("${aws.region:us-east-1}") final String region
+            @Value("${aws.region:us-east-1}") final String region,
+            @Value("${aws.lambda.download.url}") final String lambdaDownloadUrl
     ) {
         this.bucketName = bucketName;
         this.region = region;
+        this.lambdaDownloadUrl = lambdaDownloadUrl;
+        this.httpClient = HttpClient.newHttpClient();
         this.s3Client = S3Client.builder()
                 .region(Region.of(region))
                 .credentialsProvider(DefaultCredentialsProvider.create())
                 .build();
+
+        log.info("Initialized ImageWorkerService for region '{}' and bucket '{}'", region, bucketName);
     }
 
     public void process(final Task task) throws Exception {
-        System.out.println("=== IMAGE WORKER SERVICE: Starting image processing ===");
-        System.out.println("ImageWorkerService: Processing task ID: " + task.getId());
-        
-        long start = System.currentTimeMillis();
+        final long start = System.currentTimeMillis();
+        log.info("Starting image processing for task ID: {}", task.getId());
 
-        System.out.println("ImageWorkerService: Extracting task payload...");
-        final String s3Url = (String) task.getPayload().get("s3Url");
+        final String s3Key = (String) task.getPayload().get("key");
         final String fileName = (String) task.getPayload().get("fileName");
         @SuppressWarnings("unchecked")
         final Map<String, Object> options = (Map<String, Object>) task.getPayload().get("options");
-        
-        System.out.println("ImageWorkerService: S3 URL: " + s3Url);
-        System.out.println("ImageWorkerService: File name: " + fileName);
-        System.out.println("ImageWorkerService: Processing options: " + options);
 
-        System.out.println("ImageWorkerService: Creating temporary files...");
+        log.debug("Task {} payload: S3 Key={}, File={}, Options={}", task.getId(), s3Key, fileName, options);
+
         final Path input = Files.createTempFile("input-", "-" + fileName);
         final Path output = Files.createTempFile("processed-", "-" + fileName.replaceAll("\\..+$", ".jpg"));
-        System.out.println("ImageWorkerService: Input file: " + input.toString());
-        System.out.println("ImageWorkerService: Output file: " + output.toString());
+        log.debug("Temporary input file: {}", input);
+        log.debug("Temporary output file: {}", output);
 
-        System.out.println("ImageWorkerService: Downloading image from S3...");
-        downloadFromS3(s3Url, input);
-        System.out.println("ImageWorkerService: Image downloaded successfully");
+        try {
+            log.info("Downloading image from S3 via Lambda for task {}", task.getId());
+            downloadFromLambda(s3Key, input);
+            log.info("Successfully downloaded image for task {}", task.getId());
 
-        System.out.println("ImageWorkerService: Reading image file...");
-        BufferedImage img = ImageIO.read(input.toFile());
-        if (img == null) {
-            System.err.println("ImageWorkerService ERROR: Invalid image format for: " + fileName);
-            throw new IOException("Invalid image format for: " + fileName);
-        }
-        System.out.println("ImageWorkerService: Image loaded successfully - " + img.getWidth() + "x" + img.getHeight());
+            BufferedImage img = ImageIO.read(input.toFile());
+            if (img == null) {
+                log.error("Invalid image format for file '{}'", fileName);
+                throw new IOException("Invalid image format: " + fileName);
+            }
+            log.debug("Loaded image: {}x{}", img.getWidth(), img.getHeight());
 
-        System.out.println("ImageWorkerService: Applying image processing options...");
-        if (getBoolean(options, "resize")) {
-            System.out.println("ImageWorkerService: Applying resize...");
-            img = resizeIfNeeded(img);
-        }
-        if (getBoolean(options, "grayscale")) {
-            System.out.println("ImageWorkerService: Converting to grayscale...");
-            img = convertToGrayscale(img);
-        }
-        if (getBoolean(options, "invert")) {
-            System.out.println("ImageWorkerService: Inverting colors...");
-            img = invertColors(img);
-        }
-        if (getBoolean(options, "blur")) {
-            System.out.println("ImageWorkerService: Applying blur...");
-            img = blurImage(img);
-        }
-        if (options.get("watermark") != null) {
-            System.out.println("ImageWorkerService: Adding watermark...");
-            img = addWatermark(img, options.get("watermark").toString());
-        }
+            // Apply transformations
+            if (getBoolean(options, "resize")) {
+                log.info("Applying resize to task {}", task.getId());
+                img = resizeIfNeeded(img);
+            }
+            if (getBoolean(options, "grayscale")) {
+                log.info("Applying grayscale filter to task {}", task.getId());
+                img = convertToGrayscale(img);
+            }
+            if (getBoolean(options, "invert")) {
+                log.info("Applying color inversion to task {}", task.getId());
+                img = invertColors(img);
+            }
+            if (getBoolean(options, "blur")) {
+                log.info("Applying blur filter to task {}", task.getId());
+                img = blurImage(img);
+            }
+            if (options.get("watermark") != null) {
+                log.info("Adding watermark '{}' to task {}", options.get("watermark"), task.getId());
+                img = addWatermark(img, options.get("watermark").toString());
+            }
 
-        System.out.println("ImageWorkerService: Compressing to JPEG...");
-        compressToJPEG(img, output, 0.85f);
-        System.out.println("ImageWorkerService: JPEG compression completed");
+            log.info("Compressing task {} image to JPEG", task.getId());
+            compressToJPEG(img, output, 0.85f);
 
-        final String key = String.format("processed/%s/%d-%s",
-                task.getId(), Instant.now().getEpochSecond(), fileName.replaceAll("\\..+$", ".jpg"));
-        System.out.println("ImageWorkerService: Generated S3 key: " + key);
+            final String key = String.format("processed/%s/%d-%s",
+                    task.getId(), Instant.now().getEpochSecond(),
+                    fileName.replaceAll("\\..+$", ".jpg"));
+            log.debug("Generated S3 output key: {}", key);
 
-        System.out.println("ImageWorkerService: Uploading processed image to S3...");
-        uploadToS3(output, key);
-        System.out.println("ImageWorkerService: Upload to S3 completed");
-        
-        task.setResultUrl("https://" + bucketName + ".s3." + region + ".amazonaws.com/" + key);
-        System.out.println("ImageWorkerService: Set result URL: " + task.getResultUrl());
-        
-        System.out.println("ImageWorkerService: Cleaning up temporary files...");
-        Files.deleteIfExists(input);
-        Files.deleteIfExists(output);
-        System.out.println("ImageWorkerService: Cleanup completed");
+            log.info("Uploading processed image for task {} to S3", task.getId());
+            uploadToS3(output, key);
+            log.info("Successfully uploaded processed image to S3 with key {}", key);
+
+            task.setResultUrl(key);
+            log.debug("Set result S3 key for task {}: {}", task.getId(), task.getResultUrl());
+
+        } catch (Exception e) {
+            log.error("Error processing image for task {}: {}", task.getId(), e.getMessage(), e);
+            throw e;
+        } finally {
+            log.debug("Cleaning up temporary files for task {}", task.getId());
+            Files.deleteIfExists(input);
+            Files.deleteIfExists(output);
+        }
 
         final double time = (System.currentTimeMillis() - start) / 1000.0;
-        System.out.println("ImageWorkerService: Image processing completed successfully in " + time + "s");
-        System.out.println("ImageWorkerService: Final result URL: " + task.getResultUrl());
+        log.info("Image processing for task {} completed in {}s", task.getId(), time);
     }
 
+    // --- Image processing helpers ---
+
     private BufferedImage resizeIfNeeded(BufferedImage img) {
-        final int width = img.getWidth(), height = img.getHeight();
+        int width = img.getWidth(), height = img.getHeight();
         if (width <= MAX_WIDTH && height <= MAX_HEIGHT) return img;
 
-        final double scale = Math.min((double) MAX_WIDTH / width, (double) MAX_HEIGHT / height);
+        double scale = Math.min((double) MAX_WIDTH / width, (double) MAX_HEIGHT / height);
         int newW = (int) (width * scale), newH = (int) (height * scale);
 
-        final Image scaled = img.getScaledInstance(newW, newH, Image.SCALE_SMOOTH);
-        final BufferedImage resized = new BufferedImage(newW, newH, BufferedImage.TYPE_INT_RGB);
-        final Graphics2D g = resized.createGraphics();
+        Image scaled = img.getScaledInstance(newW, newH, Image.SCALE_SMOOTH);
+        BufferedImage resized = new BufferedImage(newW, newH, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = resized.createGraphics();
         g.drawImage(scaled, 0, 0, null);
         g.dispose();
-        System.out.println("Resized to " + newW + "x" + newH);
+        log.debug("Resized image to {}x{}", newW, newH);
         return resized;
     }
 
@@ -147,7 +160,7 @@ public class ImageWorkerService {
         Graphics2D g2d = gray.createGraphics();
         g2d.drawImage(original, 0, 0, null);
         g2d.dispose();
-        System.out.println("Converted to grayscale");
+        log.debug("Converted image to grayscale");
         return gray;
     }
 
@@ -161,7 +174,7 @@ public class ImageWorkerService {
                 inverted.setRGB(x, y, col.getRGB());
             }
         }
-        System.out.println("Inverted colors");
+        log.debug("Inverted image colors");
         return inverted;
     }
 
@@ -173,7 +186,7 @@ public class ImageWorkerService {
         };
         ConvolveOp op = new ConvolveOp(new Kernel(3, 3, kernel));
         BufferedImage blurred = op.filter(img, null);
-        System.out.println("Applied blur filter");
+        log.debug("Applied blur filter");
         return blurred;
     }
 
@@ -186,7 +199,7 @@ public class ImageWorkerService {
         int y = img.getHeight() - 20;
         g2d.drawString(text, x, y);
         g2d.dispose();
-        System.out.println("Added watermark: " + text);
+        log.debug("Added watermark: {}", text);
         return img;
     }
 
@@ -202,6 +215,7 @@ public class ImageWorkerService {
             param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
             param.setCompressionQuality(quality);
             writer.write(null, new IIOImage(img, null, null), param);
+            log.debug("Compressed image to JPEG with quality {}", quality);
         } finally {
             writer.dispose();
         }
@@ -216,17 +230,38 @@ public class ImageWorkerService {
                             .build(),
                     RequestBody.fromFile(filePath)
             );
+            log.debug("Uploaded file to S3 key {}", key);
         } catch (Exception e) {
+            log.error("Failed to upload file to S3: {}", e.getMessage(), e);
             throw new IOException("Failed to upload file to S3: " + e.getMessage());
         }
     }
 
-    private void downloadFromS3(final String s3Url, final Path dest) throws IOException {
-        try (final InputStream in = new URL(s3Url).openStream();
-             final OutputStream out = new FileOutputStream(dest.toFile())) {
-            in.transferTo(out);
+    private void downloadFromLambda(final String s3Key, final Path dest) throws IOException {
+        try {
+            final String encodedKey = URLEncoder.encode(s3Key, StandardCharsets.UTF_8);
+            final String url = lambdaDownloadUrl + "?key=" + encodedKey;
+            log.debug("Downloading from Lambda URL: {}", url);
+
+            final HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .GET()
+                    .build();
+
+            final HttpResponse<byte[]> response = httpClient.send(request, HttpResponse.BodyHandlers.ofByteArray());
+            if (response.statusCode() != 200) {
+                log.error("Lambda download failed with status {}", response.statusCode());
+                throw new IOException("Lambda download failed with status " + response.statusCode());
+            }
+
+            try (OutputStream out = new FileOutputStream(dest.toFile())) {
+                out.write(response.body());
+            }
+
+            log.debug("Downloaded {} bytes from Lambda for key {}", response.body().length, s3Key);
         } catch (Exception e) {
-            throw new IOException("Failed to download file from S3: " + e.getMessage());
+            log.error("Failed to download file from Lambda: {}", e.getMessage(), e);
+            throw new IOException("Failed to download file from Lambda: " + e.getMessage(), e);
         }
     }
 
