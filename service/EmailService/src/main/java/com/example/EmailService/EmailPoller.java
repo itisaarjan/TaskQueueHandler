@@ -20,7 +20,6 @@ public class EmailPoller {
         this.emailSenderService = emailSenderService;
         log.info("EmailPoller initialized successfully");
     }
-
     @Scheduled(fixedDelay = 5000)
     public void pollQueue() {
         log.debug("Polling queue for email tasks...");

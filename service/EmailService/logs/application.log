@@ -46,3 +46,40 @@
 2025-10-21 19:50:23 INFO  [SpringApplicationShutdownHook] c.netflix.discovery.DiscoveryClient - Unregistering ...
 2025-10-21 19:50:23 INFO  [SpringApplicationShutdownHook] c.netflix.discovery.DiscoveryClient - DiscoveryClient_EMAILSERVICE/mac.lan:EmailService:8004 - deregister  status: 200
 2025-10-21 19:50:23 INFO  [SpringApplicationShutdownHook] c.netflix.discovery.DiscoveryClient - Completed shut down of DiscoveryClient
+2025-10-21 20:46:03 INFO  [background-preinit] o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.3.Final
+2025-10-21 20:46:03 INFO  [main] c.e.E.EmailServiceApplicationTests - Starting EmailServiceApplicationTests using Java 21.0.1 with PID 94374 (started by arjansubedi in /Users/arjansubedi/Downloads/taskqueue/service/EmailService)
+2025-10-21 20:46:03 INFO  [main] c.e.E.EmailServiceApplicationTests - No active profile set, falling back to 1 default profile: "default"
+2025-10-21 20:46:04 INFO  [main] o.s.cloud.context.scope.GenericScope - BeanFactory id=135ae4b8-afd9-328e-8e83-27fbd8fa4e2b
+2025-10-21 20:46:04 INFO  [main] o.s.c.o.FeignClientFactoryBean - For 'queue-service' URL not provided. Will try picking an instance via load-balancing.
+2025-10-21 20:46:04 INFO  [main] c.e.EmailService.EmailSenderService - EmailSenderService initialized successfully
+2025-10-21 20:46:04 INFO  [main] c.example.EmailService.EmailPoller - EmailPoller initialized successfully
+2025-10-21 20:46:05 INFO  [main] o.s.c.n.e.c.DiscoveryClientOptionalArgsConfiguration - Eureka HTTP Client uses RestTemplate.
+2025-10-21 20:46:05 WARN  [main] o.s.c.l.c.LoadBalancerCacheAutoConfiguration$LoadBalancerCaffeineWarnLogger - Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+2025-10-21 20:46:05 INFO  [main] o.s.b.a.e.web.EndpointLinksResolver - Exposing 1 endpoint beneath base path '/actuator'
+2025-10-21 20:46:05 INFO  [main] o.s.c.n.eureka.InstanceInfoFactory - Setting initial instance status as: STARTING
+2025-10-21 20:46:05 INFO  [main] c.netflix.discovery.DiscoveryClient - Initializing Eureka in region us-east-1
+2025-10-21 20:46:05 INFO  [main] c.n.d.s.r.aws.ConfigClusterResolver - Resolving eureka endpoints via configuration
+2025-10-21 20:46:05 INFO  [main] c.netflix.discovery.DiscoveryClient - Disable delta property : false
+2025-10-21 20:46:05 INFO  [main] c.netflix.discovery.DiscoveryClient - Single vip registry refresh property : null
+2025-10-21 20:46:05 INFO  [main] c.netflix.discovery.DiscoveryClient - Force full registry fetch : false
+2025-10-21 20:46:05 INFO  [main] c.netflix.discovery.DiscoveryClient - Application is null : false
+2025-10-21 20:46:05 INFO  [main] c.netflix.discovery.DiscoveryClient - Registered Applications size is zero : true
+2025-10-21 20:46:05 INFO  [main] c.netflix.discovery.DiscoveryClient - Application version is -1: true
+2025-10-21 20:46:05 INFO  [main] c.netflix.discovery.DiscoveryClient - Getting all instance registry info from the eureka server
+2025-10-21 20:46:05 INFO  [main] c.netflix.discovery.DiscoveryClient - The response status is 200
+2025-10-21 20:46:05 INFO  [main] c.netflix.discovery.DiscoveryClient - Starting heartbeat executor: renew interval is: 30
+2025-10-21 20:46:05 INFO  [main] c.n.discovery.InstanceInfoReplicator - InstanceInfoReplicator onDemand update allowed rate per min is 4
+2025-10-21 20:46:05 INFO  [main] c.netflix.discovery.DiscoveryClient - Discovery Client initialized at timestamp 1761093965342 with initial instances count: 4
+2025-10-21 20:46:05 INFO  [main] o.s.c.n.e.s.EurekaServiceRegistry - Registering application EMAILSERVICE with eureka with status UP
+2025-10-21 20:46:05 INFO  [main] c.netflix.discovery.DiscoveryClient - Saw local status change event StatusChangeEvent [timestamp=1761093965345, current=UP, previous=STARTING]
+2025-10-21 20:46:05 INFO  [DiscoveryClient-InstanceInfoReplicator-%d] c.netflix.discovery.DiscoveryClient - DiscoveryClient_EMAILSERVICE/mac.lan:EmailService:8004: registering service...
+2025-10-21 20:46:05 INFO  [main] c.e.E.EmailServiceApplicationTests - Started EmailServiceApplicationTests in 1.771 seconds (process running for 2.535)
+2025-10-21 20:46:05 INFO  [DiscoveryClient-InstanceInfoReplicator-%d] c.netflix.discovery.DiscoveryClient - DiscoveryClient_EMAILSERVICE/mac.lan:EmailService:8004 - registration status: 204
+2025-10-21 20:46:05 INFO  [SpringApplicationShutdownHook] o.s.c.n.e.s.EurekaServiceRegistry - Unregistering application EMAILSERVICE with eureka with status DOWN
+2025-10-21 20:46:05 INFO  [SpringApplicationShutdownHook] c.netflix.discovery.DiscoveryClient - Saw local status change event StatusChangeEvent [timestamp=1761093965906, current=DOWN, previous=UP]
+2025-10-21 20:46:05 INFO  [DiscoveryClient-InstanceInfoReplicator-%d] c.netflix.discovery.DiscoveryClient - DiscoveryClient_EMAILSERVICE/mac.lan:EmailService:8004: registering service...
+2025-10-21 20:46:05 INFO  [DiscoveryClient-InstanceInfoReplicator-%d] c.netflix.discovery.DiscoveryClient - DiscoveryClient_EMAILSERVICE/mac.lan:EmailService:8004 - registration status: 204
+2025-10-21 20:46:05 INFO  [SpringApplicationShutdownHook] c.netflix.discovery.DiscoveryClient - Shutting down DiscoveryClient ...
+2025-10-21 20:46:08 INFO  [SpringApplicationShutdownHook] c.netflix.discovery.DiscoveryClient - Unregistering ...
+2025-10-21 20:46:08 INFO  [SpringApplicationShutdownHook] c.netflix.discovery.DiscoveryClient - DiscoveryClient_EMAILSERVICE/mac.lan:EmailService:8004 - deregister  status: 200
+2025-10-21 20:46:08 INFO  [SpringApplicationShutdownHook] c.netflix.discovery.DiscoveryClient - Completed shut down of DiscoveryClient
