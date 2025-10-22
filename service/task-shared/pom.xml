@@ -3,8 +3,21 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.example</groupId>
+    <parent>
+        <groupId>com.example</groupId>
+        <artifactId>taskqueue-parent</artifactId>
+        <version>1.0.0</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
     <artifactId>task-shared</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
+    <name>task-shared</name>
+    <description>Shared models and DTOs for TaskQueue microservices</description>
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+    </properties>
 </project>

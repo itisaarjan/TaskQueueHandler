@@ -1,0 +1,41 @@
+# Git
+.git
+.gitignore
+.github
+
+# IDEs
+.vscode
+.idea
+*.iml
+*.swp
+*.swo
+*~
+
+# Node modules and frontend
+frontend/node_modules
+frontend/build
+frontend/dist
+
+# Infra
+infra/node_modules
+infra/cdk.out
+
+# Build artifacts (will be rebuilt in container)
+**/target
+**/build
+
+# Logs
+**/logs
+**/*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation
+*.md
+!README.md
+
+# CI/CD
+.github
+

@@ -6,13 +6,12 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.3.3</version>
-		<relativePath/>
+		<groupId>com.example</groupId>
+		<artifactId>taskqueue-parent</artifactId>
+		<version>1.0.0</version>
+		<relativePath>../pom.xml</relativePath>
 	</parent>
 
-	<groupId>com.example</groupId>
 	<artifactId>QueueService</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>QueueService</name>
@@ -21,27 +20,6 @@
 	<properties>
 		<java.version>17</java.version>
 	</properties>
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>
-					org.springframework.cloud
-				</groupId>
-				<artifactId>
-					spring-cloud-dependencies
-				</artifactId>
-				<version>
-					2023.0.1
-				</version>
-				<type>
-					pom
-				</type>
-				<scope>
-					import
-				</scope>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
