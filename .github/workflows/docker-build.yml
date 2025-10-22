@@ -10,7 +10,7 @@ jobs:
 
     strategy:
       matrix:
-        service: [TaskQueue, QueueService, ImageWorker, EmailService, TaskDBService]
+        service: [task-queue, QueueService, ImageWorker, EmailService, TaskDBService]
 
     steps:
       - name: Checkout repository
