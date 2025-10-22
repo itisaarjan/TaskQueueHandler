@@ -10,7 +10,7 @@ jobs:
 
     strategy:
       matrix:
-        service: [task-queue, QueueService, ImageWorker, EmailService, TaskDBService]
+        service: [TaskQueue, QueueService, ImageWorker, EmailService, TaskDBService]
 
     steps:
       - name: Checkout repository
@@ -28,7 +28,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./service/${{ matrix.service }}US
-          file: ./service/${{ matrix.service }}/Dockerfile
-          push: true
-          tags: yourusername/${{ matrix.service }}:latest
+            context: ./service/${{ matrix.service }}
+            file: ./service/${{ matrix.service }}/Dockerfile
+            push: true
+            tags: arjansubedi/${{ toLower(matrix.service) }}:latest
+
