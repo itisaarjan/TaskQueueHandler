@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: queue-service
+  labels:
+    app: queue-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: queue-service
+  template:
+    metadata:
+      name: queue-service
+      labels:
+        app: queue-service
+    spec:
+      containers:
+        - name: queue-service
+          image: arjansubedi/queueservice:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8001
+              protocol: TCP
+      restartPolicy: Always
+      

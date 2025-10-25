@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: task-db-service
+  labels:
+    app: task-db-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: task-db-service
+  template:
+    metadata:
+      name: task-db-service
+      labels:
+        app: task-db-service
+    spec:
+      containers:
+        - name: task-db-service
+          image: arjansubedi/taskdbservice:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8002
+              protocol: TCP
+      restartPolicy: Always
+      

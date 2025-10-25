@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: image-processing-service
+  labels:
+    app: image-processing-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: image-processing-service
+  template:
+    metadata:
+      name: image-processing-service
+      labels:
+        app: image-processing-service
+    spec:
+      containers:
+        - name: image-processing-service
+          image: arjansubedi/imageworker:lastest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8003
+              protocol: TCP
+      restartPolicy: Always
+      
