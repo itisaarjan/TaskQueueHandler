@@ -4,7 +4,7 @@ kind: Kustomization
 namespace: backend
 
 resources:
-  - backend.yaml
+  # - backend.yaml
   - queue.yaml
   - queue-service.yaml
   - task-queue-service.yaml
