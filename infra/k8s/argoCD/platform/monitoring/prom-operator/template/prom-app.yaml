@@ -11,20 +11,20 @@ spec:
     targetRevision: 61.3.1        
     helm:
       values: |
-          grafana:
+        grafana:
+        enabled: true
+        adminPassword: admin
+        service:
+          type: NodePort
+        ingress:
+          enabled: false
+        prometheus:
+          prometheusSpec:
+            serviceMonitorSelectorNilUsesHelmValues: false
+        alertmanager:
           enabled: true
-          adminPassword: admin
-          service:
-            type: NodePort
-          ingress:
-            enabled: false
-          prometheus:
-            prometheusSpec:
-              serviceMonitorSelectorNilUsesHelmValues: false
-          alertmanager:
-            enabled: true
-          sidecar:
-            grafana_alert: true
+        sidecar:
+          grafana_alert: true
         
   destination:
     server: https://kubernetes.default.svc
