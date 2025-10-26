@@ -11,7 +11,7 @@ spec:
     targetRevision: 61.3.1        
     helm:
       valueFiles:
-        - prometheus/values.yaml  
+        - ../values.yaml  
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
