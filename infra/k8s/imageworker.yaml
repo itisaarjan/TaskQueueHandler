@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: image-processing-service
+  name: image-worker
   labels:
-    app: image-processing-service
+    app: image-worker
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: image-processing-service
+      app: image-worker
   template:
     metadata:
-      name: image-processing-service
+      name: image-worker
       labels:
-        app: image-processing-service
+        app: image-worker
     spec:
       containers:
-        - name: image-processing-service
-          image: arjansubedi/imageworker:lastest
+        - name: image-worker
+          image: arjansubedi/imageworker:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8003

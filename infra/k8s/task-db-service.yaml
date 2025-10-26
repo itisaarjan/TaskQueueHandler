@@ -11,16 +11,20 @@ spec:
       app: task-db-service
   template:
     metadata:
-      name: task-db-service
       labels:
         app: task-db-service
     spec:
       containers:
         - name: task-db-service
           image: arjansubedi/taskdbservice:latest
-          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8002
-              protocol: TCP
-      restartPolicy: Always
-      
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://postgres-service:5432/taskdb"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "admin"
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: "admin"
+            - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+              value: "update"

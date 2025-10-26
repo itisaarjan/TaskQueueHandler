@@ -1,26 +1,31 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: queue-service
+  name: queue
   labels:
-    app: queue-service
+    app: queue
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: queue-service
+      app: queue
   template:
     metadata:
-      name: queue-service
+      name: queue
       labels:
-        app: queue-service
+        app: queue
     spec:
       containers:
-        - name: queue-service
+        - name: queue
           image: arjansubedi/queueservice:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8001
               protocol: TCP
+          env:
+            - name: SPRING_DATA_REDIS_HOST
+              value: "redis-service"
+            - name: SPRING_DATA_REDIS_PORT
+              value: "6379"
       restartPolicy: Always
       
