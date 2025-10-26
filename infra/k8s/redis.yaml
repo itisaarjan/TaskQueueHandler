@@ -19,8 +19,16 @@ spec:
         - name: redis
           image: redis:7.2-alpine
           imagePullPolicy: IfNotPresent
+          args: ["redis-server", "--appendonly", "yes", "--save", "60", "1"]
           ports:
             - containerPort: 6379
               protocol: TCP
+          volumeMounts:
+            - mountPath: /data
+              name: redis-data
+      volumes:
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: redis-pvc
       restartPolicy: Always
       

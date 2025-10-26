@@ -29,4 +29,12 @@ spec:
               value: "admin"
             - name: POSTGRES_DB
               value: "taskdb"
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data
+              subPath: data
+      volumes:
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: postgres-pvc
       restartPolicy: Always
