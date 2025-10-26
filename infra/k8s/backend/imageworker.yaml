@@ -1,26 +1,27 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: email-service
+  name: image-worker
+  namespace: backend
   labels:
-    app: email-service
+    app: image-worker
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: email-service
+      app: image-worker
   template:
     metadata:
-      name: email-service
+      name: image-worker
       labels:
-        app: email-service
+        app: image-worker
     spec:
       containers:
-        - name: email-service
-          image: arjansubedi/emailservice:latest
+        - name: image-worker
+          image: arjansubedi/imageworker:latest
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 8004
+            - containerPort: 8003
               protocol: TCP
       restartPolicy: Always
       

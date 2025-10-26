@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: task-db-service
+  namespace: backend
   labels:
     app: task-db-service
 spec:
