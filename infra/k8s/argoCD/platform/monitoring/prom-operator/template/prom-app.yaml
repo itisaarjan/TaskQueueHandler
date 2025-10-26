@@ -8,24 +8,32 @@ spec:
   source:
     repoURL: https://prometheus-community.github.io/helm-charts
     chart: kube-prometheus-stack
-    targetRevision: 61.3.1        
+    targetRevision: 61.3.1
     helm:
       values: |
         grafana:
-        enabled: true
-        adminPassword: admin
-        service:
-          type: NodePort
-        ingress:
-          enabled: false
+          enabled: true
+          adminPassword: admin
+          service:
+            type: NodePort
+          ingress:
+            enabled: false
+          sidecar:
+            dashboards:
+              enabled: true
+              label: grafana_dashboard
+              searchNamespace: ALL
+            alerts:
+              enabled: true
+              label: grafana_alert
+              searchNamespace: ALL
+
         prometheus:
           prometheusSpec:
             serviceMonitorSelectorNilUsesHelmValues: false
+
         alertmanager:
           enabled: true
-        sidecar:
-          grafana_alert: true
-        
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
