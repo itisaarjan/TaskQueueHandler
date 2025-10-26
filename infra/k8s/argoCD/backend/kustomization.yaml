@@ -1,19 +1,14 @@
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-
-namespace: backend
-
 resources:
-  - backend-namespace.yaml
-  - queue.yaml
-  - queue-service.yaml
-  - task-queue-service.yaml
-  - task-db-service.yaml
-  - redis.yaml
-  - redis-service.yaml
-  - redis-pvc.yaml
-  - postgress.yaml
-  - postgres-service.yaml
-  - postgress-pvc.yaml
-  - imageworker.yaml
-  - emailworker.yaml
+  - resources/backend-namespace.yaml
+  - resources/queue.yaml
+  - resources/queue-service.yaml
+  - resources/task-queue-service.yaml
+  - resources/task-db-service.yaml
+  - resources/redis.yaml
+  - resources/redis-service.yaml
+  - resources/redis-pvc.yaml
+  - resources/postgress.yaml
+  - resources/postgres-service.yaml
+  - resources/postgress-pvc.yaml
+  - resources/imageworker.yaml
+  - resources/emailworker.yaml
