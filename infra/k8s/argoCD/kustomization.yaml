@@ -1,3 +1,4 @@
 resources:
   - backend/backend-app.yaml
   - platform/platform-app.yaml
+  - frontend/frontend-app.yaml

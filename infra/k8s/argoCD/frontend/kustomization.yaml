@@ -1,0 +1,9 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - resources/frontend-namespace.yaml
+  - resources/frontend-deployment.yaml
+  - resources/frontend-service.yaml
+  - resources/ingress.yaml
+

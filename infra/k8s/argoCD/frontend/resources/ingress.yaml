@@ -1,0 +1,54 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: taskqueue-ingress
+  namespace: frontend
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: taskqueue.local
+    http:
+      paths:
+      # Frontend routes
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: frontend
+            port:
+              number: 80
+      # Backend API routes
+      - path: /tasks
+        pathType: Prefix
+        backend:
+          service:
+            name: task-queue-service
+            port:
+              number: 8000
+---
+# Ingress for backend namespace (allows cross-namespace routing)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: backend-ingress
+  namespace: backend
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: taskqueue.local
+    http:
+      paths:
+      - path: /tasks
+        pathType: Prefix
+        backend:
+          service:
+            name: task-queue-service
+            port:
+              number: 8000
+
