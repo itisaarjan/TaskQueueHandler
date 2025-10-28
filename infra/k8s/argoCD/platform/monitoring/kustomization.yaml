@@ -1,2 +1,3 @@
 resources:
   - prom-operator/template/prom-app.yaml
+  - dashboards/spring-boot-dashboard.yaml

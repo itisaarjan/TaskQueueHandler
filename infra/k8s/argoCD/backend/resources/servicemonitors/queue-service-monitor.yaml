@@ -1,0 +1,21 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: queue-service-monitor
+  namespace: backend
+  labels:
+    app: queue-service
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: queue-service
+  endpoints:
+    - port: http
+      path: /actuator/prometheus
+      interval: 30s
+      scrapeTimeout: 10s
+  namespaceSelector:
+    matchNames:
+      - backend
+

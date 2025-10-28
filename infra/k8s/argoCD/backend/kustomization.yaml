@@ -12,3 +12,10 @@ resources:
   - resources/postgress-pvc.yaml
   - resources/imageworker.yaml
   - resources/emailworker.yaml
+  - resources/email-service.yaml
+  # ServiceMonitors for Prometheus
+  - resources/servicemonitors/email-service-monitor.yaml
+  - resources/servicemonitors/task-queue-monitor.yaml
+  - resources/servicemonitors/queue-service-monitor.yaml
+  - resources/servicemonitors/image-worker-monitor.yaml
+  - resources/servicemonitors/task-db-service-monitor.yaml
